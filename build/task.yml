@@ -86,6 +86,7 @@ vars:
     sh: "{{.OS_COMMAND}} -s"
   OS_COMMAND_TYPE_ARCHITECTURE:
     sh: "{{.OS_COMMAND}} -m"
+  PARTIAL_TESTING: '{{.PARTIAL_TESTING | default "no"}}'
   PRESENT_BIN: "{{.GOBIN}}/present"
   PRESENT_VERSION: v0.40.0
   PRESENT_PRESENTATIONS_HOME: '{{.PRESENT_PRESENTATIONS_HOME | default "./docs/presentations"}}'
@@ -676,6 +677,22 @@ tasks:
     cmds:
       - task: golang-log
       - |
+        # if partial testing is not enabled then set PKGs to ./... 
+        # else set PKGs to gta -include "$(go list -f '{{ .Module.Path }}')/" -b origin/base-branch
+        if [ "{{.PARTIAL_TESTING}}" = "no" ]; then
+          echo "Running full test suite..."
+          export PKGS="./..."
+        else
+          echo "Running partial test suite..."
+          export PKGS=$(gta -include "$(go list -f '{{ .Module.Path }}')" -b origin/base-branch)
+          if [ -z "${PKGS}" ]; then
+            echo "No packages changed compared to base branch. Skipping tests."
+            exit 0
+          fi
+          echo "Packages to be tested:"
+          echo "${PKGS}"
+        fi
+      - |
         # when "if testing.Short() { t.Skip() }" is in the go code then such
         # tests will be skipped if -short is used.
         go test \
@@ -683,7 +700,7 @@ tasks:
           -race \
           -short \
           --tags={{.TEST_TAGS}} \
-          ./... \
+          ${PKGS} \
           {{.TEST_EXTRA_ARGS}} \
           -timeout {{.TEST_TIMEOUT}}
     desc: run test
