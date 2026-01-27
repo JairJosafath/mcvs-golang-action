@@ -35,11 +35,19 @@ inputs:
       disabled.
   grype-version:
     description: The grype version to be used by the anchore/scan-action.
-  partial-testing:
+  gta-base-branch:
+    default: main
+    description: |
+      The base branch to compare changed code to.
+  gta-partial-testing:
     default: false
     description: |
       Whether partial testing should be performed. Only changed packages will be
       tested.
+  gta-version:
+    default: v0.1.2
+    description: |
+      The version of GTA to be used.
   release-application-name:
     description: |
       The name of the application that has to be released.
@@ -270,8 +278,10 @@ runs:
     # Install digitalocean/gta if partial testing is enabled.
     #
     - name: install gta for partial testing
-      if: inputs.partial-testing == true
+      if: inputs.gta-partial-testing == true
       shell: bash
+      env:
+        GTA_VERSION: ${{ inputs.gta-version }}
       run: |
         task remote:gta-install
     #
@@ -282,7 +292,8 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
-        PARTIAL_TESTING: ${{ inputs.partial-testing }}
+        GTA_BASE_BRANCH: ${{ inputs.gta-base-branch }}
+        GTA_PARTIAL_TESTING: ${{ inputs.gta-partial-testing }}
       run: |
         task remote:test-cicd --yes
     #
@@ -293,7 +304,8 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
-        PARTIAL_TESTING: ${{ inputs.partial-testing }}
+        GTA_BASE_BRANCH: ${{ inputs.gta-base-branch }}
+        GTA_PARTIAL_TESTING: ${{ inputs.gta-partial-testing }}
         TEST_TIMEOUT: ${{ inputs.test-timeout }}
       run: |
         task remote:test-integration-cicd --yes
@@ -308,7 +320,8 @@ runs:
         CODE_COVERAGE_FILE_EXCLUSIONS: ${{ inputs.golang-unit-tests-exclusions }}
         GITHUB_TOKEN: ${{ inputs.token }}
         CODE_COVERAGE_TIMEOUT: ${{ inputs.code-coverage-timeout }}
-        PARTIAL_TESTING: ${{ inputs.partial-testing }}
+        GTA_BASE_BRANCH: ${{ inputs.gta-base-branch }}
+        GTA_PARTIAL_TESTING: ${{ inputs.gta-partial-testing }}
       run: |
         task remote:coverage --yes
     #
@@ -319,7 +332,8 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
-        PARTIAL_TESTING: ${{ inputs.partial-testing }}
+        GTA_BASE_BRANCH: ${{ inputs.gta-base-branch }}
+        GTA_PARTIAL_TESTING: ${{ inputs.gta-partial-testing }}
       run: |
         task remote:test-component-cicd --yes
     #
