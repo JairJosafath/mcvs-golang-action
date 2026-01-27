@@ -44,10 +44,6 @@ inputs:
     description: |
       Whether partial testing should be performed. Only changed packages will be
       tested.
-  gta-version:
-    default: v0.1.2
-    description: |
-      The version of GTA to be used.
   release-application-name:
     description: |
       The name of the application that has to be released.
