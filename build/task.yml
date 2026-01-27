@@ -88,7 +88,7 @@ vars:
     sh: "{{.OS_COMMAND}} -s"
   OS_COMMAND_TYPE_ARCHITECTURE:
     sh: "{{.OS_COMMAND}} -m"
-  PARTIAL_TESTING: '{{.PARTIAL_TESTING | default "no"}}'
+  PARTIAL_TESTING: '{{.PARTIAL_TESTING | default false}}'
   PRESENT_BIN: "{{.GOBIN}}/present"
   PRESENT_VERSION: v0.40.0
   PRESENT_PRESENTATIONS_HOME: '{{.PRESENT_PRESENTATIONS_HOME | default "./docs/presentations"}}'
@@ -689,30 +689,25 @@ tasks:
       - |
         # if partial testing is not enabled then set PKGs to ./... 
         # else set PKGs to changed packages
-        if [ "{{.PARTIAL_TESTING}}" = "no" ]; then
-          echo "Running full test suite..."
-          export PKGS="./..."
-        else
+        if [ "{{.PARTIAL_TESTING}}" = true ]; then
           echo "Running partial test suite..."
           export PKGS=$(gta -include "$(go list -f '{{ .Module.Path }}')" -base {{.GTA_BASE_BRANCH}})
           if [ -z "${PKGS}" ]; then
             echo "No packages changed compared to base branch {{.GTA_BASE_BRANCH}}. Skipping tests."
-
-          else 
-            echo "Packages to be tested:"
-            echo "${PKGS}"
-            # when "if testing.Short() { t.Skip() }" is in the go code then such
-            # tests will be skipped if -short is used.
-            go test \
-              -p {{.GOLANG_PARALLEL_TESTS}} \
-              -race \
-              -short \
-              --tags={{.TEST_TAGS}} \
-              ${PKGS} \
-              {{.TEST_EXTRA_ARGS}} \
-              -timeout {{.TEST_TIMEOUT}}
           fi
+        else 
+          export PKGS=./...
         fi
+        # when "if testing.Short() { t.Skip() }" is in the go code then such
+        # tests will be skipped if -short is used.
+        go test \
+          -p {{.GOLANG_PARALLEL_TESTS}} \
+          -race \
+          -short \
+          --tags={{.TEST_TAGS}} \
+          ${PKGS} \
+          {{.TEST_EXTRA_ARGS}} \
+          -timeout {{.TEST_TIMEOUT}}
        
     desc: run test
     silent: true
