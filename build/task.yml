@@ -88,7 +88,7 @@ vars:
     sh: "{{.OS_COMMAND}} -s"
   OS_COMMAND_TYPE_ARCHITECTURE:
     sh: "{{.OS_COMMAND}} -m"
-  PARTIAL_TESTING: '{{.PARTIAL_TESTING | default false}}'
+  GTA_PARTIAL_TESTING: '{{.GTA_PARTIAL_TESTING | default false}}'
   PRESENT_BIN: "{{.GOBIN}}/present"
   PRESENT_VERSION: v0.40.0
   PRESENT_PRESENTATIONS_HOME: '{{.PRESENT_PRESENTATIONS_HOME | default "./docs/presentations"}}'
@@ -689,7 +689,7 @@ tasks:
       - |
         # if partial testing is not enabled then set PKGs to ./... 
         # else set PKGs to changed packages
-        if [ "{{.PARTIAL_TESTING}}" = true ]; then
+        if [ "{{.GTA_PARTIAL_TESTING}}" = true ]; then
           echo "Running partial test suite..."
           export PKGS=$(gta -include "$(go list -f '{{ .Module.Path }}')" -base {{.GTA_BASE_BRANCH}})
           if [ -z "${PKGS}" ]; then
