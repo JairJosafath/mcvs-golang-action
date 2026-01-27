@@ -35,6 +35,11 @@ inputs:
       disabled.
   grype-version:
     description: The grype version to be used by the anchore/scan-action.
+  partial-testing:
+    default: false
+    description: |
+      Whether partial testing should be performed. Only changed packages will be
+      tested.
   release-application-name:
     description: |
       The name of the application that has to be released.
@@ -86,11 +91,6 @@ inputs:
     default: "public.ecr.aws/aquasecurity/trivy-java-db:1"
     description: |
       OCI repository to retrieve trivy-java-db from.
-  partial-testing:
-    default: "no"
-    description: |
-      Whether partial testing should be performed. Only changed packages will be
-      tested.
 runs:
   using: "composite"
   steps:
@@ -270,12 +270,10 @@ runs:
     # Install digitalocean/gta if partial testing is enabled.
     #
     - name: install gta for partial testing
-      if: inputs.partial-testing == 'yes'
+      if: inputs.partial-testing == true
       shell: bash
       run: |
-        if ! gta version | grep -q "gta version v0.1.2"; then
-          go install github.com/digitalocean/gta@v0.1.2
-        fi
+        task remote:gta-install
     #
     # Unit tests.
     #
