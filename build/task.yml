@@ -694,6 +694,7 @@ tasks:
           export PKGS=$(gta -include "$(go list -f '{{ .Module.Path }}')" -base {{.GTA_BASE_BRANCH}})
           if [ -z "${PKGS}" ]; then
             echo "No packages changed compared to base branch {{.GTA_BASE_BRANCH}}. Skipping tests."
+            exit 0
           fi
         else 
           export PKGS=./...
